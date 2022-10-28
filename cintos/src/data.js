@@ -27,16 +27,19 @@ export const sliderItems = [
       id: 1,
       img: "https://images.pexels.com/photos/5710960/pexels-photo-5710960.jpeg?auto=compress&cs=tinysrgb&w=600",
       title: "ARTESANAL",
+      cat: "Artesanal"
     },
     {
       id: 2,
       img: "https://images.pexels.com/photos/6654754/pexels-photo-6654754.jpeg?auto=compress&cs=tinysrgb&w=600",
-      title: "COLECCION DE OTOÑO",
+      title: "COLECCION OTOÑO",
+      cat: "Otoño"
     },
     {
       id: 3,
       img: "https://images.pexels.com/photos/6654765/pexels-photo-6654765.jpeg?auto=compress&cs=tinysrgb&w=600",
       title: "NUEVA LINEA",
+      cat: "Nuevo"
     },
   ];
 

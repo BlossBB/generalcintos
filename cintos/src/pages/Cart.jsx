@@ -1,14 +1,16 @@
 import { Add, Remove } from "@material-ui/icons";
+import { useSelector } from "react-redux";
 import styled from "styled-components";
 import Announcement from "../components/Announcement";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import { mobile } from "../responsive";
 import StripeCheckout from "react-stripe-checkout";
-import { useState, useEffect } from "react";
-import axios from "axios";
+import { useEffect, useState } from "react";
+import { userRequest } from "../requestMethods";
+import { useNavigate } from "react-router";
 
-const KEY = "pk_test_51Lv7zyEpsYhIlqpf2UZgHzzvYE4EzOmcVXynn28PJhz7BX91JiKmEvi7VlqFZaK904pMxfOu9PofmOtjRjQKwalC00pJ1PGTb0"
+const KEY = process.env.REACT_APP_STRIPE;
 
 const Container = styled.div``;
 
@@ -159,30 +161,26 @@ const Button = styled.button`
 `;
 
 const Cart = () => {
+  const cart = useSelector((state) => state.cart);
   const [stripeToken, setStripeToken] = useState(null);
+  const navigate = useNavigate();
 
-  const onToken = (token) =>{
-    setStripeToken(token)
+  const onToken = (token) => {
+    setStripeToken(token);
   };
 
-useEffect(() => {
-  const makeRequest = async () => {
-    try {
-      const res = await axios.post(
-        "http://localhost:5000/api/checkout/payment",
-        {
+  useEffect(() => {
+    const makeRequest = async () => {
+      try {
+        const res = await userRequest.post("/checkout/payment", {
           tokenId: stripeToken.id,
-          amount: 2000,
-        }
-      );
-      console.log(res.data);
-    }catch(err){
-      console.log(err)
-    }
-  };
-  stripeToken && makeRequest();
-}, [stripeToken])
-
+          amount: cart.total * 100,
+        });
+        navigate("/success", { state: { stripeData: res.data, products: cart} });
+      } catch {}
+    };
+    stripeToken && cart.total >= 1 && makeRequest();
+  }, [stripeToken, cart.total, navigate]);
   return (
     <Container>
       <Navbar />
@@ -198,64 +196,43 @@ useEffect(() => {
           <TopButton type="filled">PAGAR AHORA</TopButton>
         </Top>
         <Bottom>
-          <Info>
-            <Product>
-              <ProductDetail>
-                <Image src="https://www.freepnglogos.com/uploads/belts-png/belts-simple-26.png" />
-                <Details>
-                  <ProductName>
-                    <b>Product:</b> CINTURON ELEGANTE
-                  </ProductName>
-                  <ProductId>
-                    <b>ID:</b> 93813718293
-                  </ProductId>
-                  <ProductColor color="brown" />
-                  <ProductSize>
-                    <b>Size:</b> 37.5
-                  </ProductSize>
-                </Details>
-              </ProductDetail>
-              <PriceDetail>
-                <ProductAmountContainer>
-                  <Add />
-                  <ProductAmount>2</ProductAmount>
-                  <Remove />
-                </ProductAmountContainer>
-                <ProductPrice>$ 300</ProductPrice>
-              </PriceDetail>
-            </Product>
+        <Info>
+            {cart.products.map((product) => (
+              <Product>
+                <ProductDetail>
+                  <Image src={product.img} />
+                  <Details>
+                    <ProductName>
+                      <b>Product:</b> {product.title}
+                    </ProductName>
+                    <ProductId>
+                      <b>ID:</b> {product._id}
+                    </ProductId>
+                    <ProductColor color={product.color} />
+                    <ProductSize>
+                      <b>Size:</b> {product.size}
+                    </ProductSize>
+                  </Details>
+                </ProductDetail>
+                <PriceDetail>
+                  <ProductAmountContainer>
+                    <Add />
+                    <ProductAmount>{product.quantity}</ProductAmount>
+                    <Remove />
+                  </ProductAmountContainer>
+                  <ProductPrice>
+                    $ {product.price * product.quantity}
+                  </ProductPrice>
+                </PriceDetail>
+              </Product>
+            ))}
             <Hr />
-            <Product>
-              <ProductDetail>
-                <Image src="https://www.freepnglogos.com/uploads/belts-png/belts-leather-belt-png-images-with-transparent-background-7.png" />
-                <Details>
-                  <ProductName>
-                    <b>Product:</b> CINTURON HAKURA
-                  </ProductName>
-                  <ProductId>
-                    <b>ID:</b> 93813718293
-                  </ProductId>
-                  <ProductColor color="gray" />
-                  <ProductSize>
-                    <b>Size:</b> M
-                  </ProductSize>
-                </Details>
-              </ProductDetail>
-              <PriceDetail>
-                <ProductAmountContainer>
-                  <Add />
-                  <ProductAmount>1</ProductAmount>
-                  <Remove />
-                </ProductAmountContainer>
-                <ProductPrice>$ 200</ProductPrice>
-              </PriceDetail>
-            </Product>
           </Info>
           <Summary>
             <SummaryTitle>RESUMEN DE LA ORDEN</SummaryTitle>
             <SummaryItem>
               <SummaryItemText>Subtotal</SummaryItemText>
-              <SummaryItemPrice>$ 500</SummaryItemPrice>
+              <SummaryItemPrice>$ {cart.total}</SummaryItemPrice>
             </SummaryItem>
             <SummaryItem>
               <SummaryItemText>Entrega estimada</SummaryItemText>
@@ -267,15 +244,15 @@ useEffect(() => {
             </SummaryItem>
             <SummaryItem type="total">
               <SummaryItemText>Total</SummaryItemText>
-              <SummaryItemPrice>$ 500</SummaryItemPrice>
+              <SummaryItemPrice>$ {cart.total}</SummaryItemPrice>
             </SummaryItem>
             <StripeCheckout 
               name="Cinto" 
               image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQtdhVLyYkA9F7W7FFs1ObfqRktVjCCzs4310xSO63V&s"
               billingAddress
               shippingAddress
-              description=" Your total is $20"
-              amount={2000}
+              description={`El total es $${cart.total}`}
+              amount={cart.total*100}
               token={onToken}
               stripeKey={KEY}
             >

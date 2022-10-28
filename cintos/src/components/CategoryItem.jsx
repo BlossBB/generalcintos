@@ -1,4 +1,5 @@
-import styled from "styled-components"
+import { Link } from "react-router-dom";
+import styled from "styled-components";
 import { mobile } from "../responsive";
 
 const Container = styled.div`
@@ -42,16 +43,18 @@ const Button = styled.button`
   border-color: #06060641;
 `;
 
-const CategoryItem = ({item}) => {
+const CategoryItem = ({ item }) => {
   return (
     <Container>
-      <Image src={item.img}/>
+      <Link to={`/products/${item.cat}`}>
+      <Image src={item.img} />
       <Info>
-          <Title>{item.title}</Title>
-          <Button>COMPRA AHORA</Button>
+        <Title>{item.title}</Title>
+        <Button>COMPRA AHORA</Button>
       </Info>
+      </Link>
     </Container>
-  )
-}
+  );
+};
 
-export default CategoryItem
+export default CategoryItem;
